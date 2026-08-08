@@ -1,0 +1,2378 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MYMENSINGH App</title>
+    <!-- Google Fonts link for stylish fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Poppins:wght@400;600;800&family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
+    
+    <!-- Firebase CDN -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            width: 100vw;
+            overflow-x: hidden;
+            background-size: cover;
+            background-position: center;
+            transition: background-image 1s ease-in-out;
+        }
+
+        /* Navbar Styling - Transparent & Responsive */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 30px;
+            background: transparent;
+            color: white;
+            position: relative;
+            z-index: 10;
+        }
+
+        .logo img {
+            height: 45px;
+            object-fit: contain;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .nav-btn {
+            border: 1px solid white;
+            padding: 6px 18px;
+            border-radius: 5px;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .nav-btn span {
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .login-btn-text {
+            color: #ff69b4; /* গোলাপী */
+        }
+
+        .admin-btn-text {
+            color: #2ecc71; /* সবুজ */
+        }
+
+        /* Flip Card Styling */
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: calc(100vh - 80px);
+            padding: 20px;
+            perspective: 1000px;
+        }
+
+        .flip-card-inner {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            transition: transform 0.8s;
+            transform-style: preserve-3d;
+        }
+
+        .flip-card-inner.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .glass-box {
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 15px;
+            padding: 30px;
+            width: 100%;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            color: white;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            transition: all 0.5s ease;
+        }
+
+        /* Login - Pink Theme */
+        .user-box {
+            background: rgba(255, 182, 193, 0.25);
+            border: 2px solid rgba(255, 105, 180, 0.6);
+            box-shadow: 0 8px 32px 0 rgba(255, 105, 180, 0.3);
+        }
+
+        /* Admin - Teal/Blue Theme */
+        .admin-box {
+            position: absolute;
+            top: 0;
+            left: 0;
+            transform: rotateY(180deg);
+            background: rgba(0, 128, 128, 0.25);
+            border: 2px solid rgba(0, 206, 209, 0.6);
+            box-shadow: 0 8px 32px 0 rgba(0, 206, 209, 0.3);
+        }
+
+        .glass-box h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 26px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 5px;
+            color: white;
+            outline: none;
+        }
+
+        .input-group option {
+            background: #222;
+            color: white;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 12px;
+            background: #1f293d;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        /* Home Page Styling (ntb.gov.np Style) */
+        #home-page {
+            display: none;
+            min-height: 100vh;
+            background: #ffffff;
+            text-align: center;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .home-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 40px;
+            background: #ffffff;
+            color: #333;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header-icons {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 18px;
+            color: #555;
+        }
+
+        .header-icons span {
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .header-icons span:hover {
+            color: #000;
+        }
+
+        .home-content {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 80vh;
+            padding: 20px;
+        }
+
+        /* Welcome Popup & Flower Animation Styles */
+        #welcome-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.7);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 25px 40px;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+            z-index: 2000;
+            display: none;
+            text-align: center;
+            border: 2px solid #ff69b4;
+            opacity: 0;
+            transition: all 0.5s ease-in-out;
+        }
+
+        #welcome-popup.show {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        #welcome-popup h2 {
+            color: #1a365d;
+            font-size: 24px;
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .flower-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 1999;
+            overflow: hidden;
+        }
+
+        .flower {
+            position: absolute;
+            top: -20px;
+            font-size: 20px;
+            user-select: none;
+            animation: fall linear forwards;
+        }
+
+        @keyframes fall {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(105vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* Side Navigation Drawer (NTB Style) */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 999;
+        }
+
+        .side-menu {
+            position: fixed;
+            top: 0;
+            right: -320px;
+            width: 320px;
+            height: 100vh;
+            background: #ffffff;
+            z-index: 1000;
+            box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+            transition: right 0.3s ease;
+            overflow-y: auto;
+            text-align: left;
+            padding: 20px;
+        }
+
+        .side-menu.active {
+            right: 0;
+        }
+
+        .side-menu-header {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 15px;
+        }
+
+        .close-menu-btn {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #333;
+        }
+
+        .menu-search-box {
+            margin-bottom: 20px;
+        }
+
+        .menu-search-box input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            background: #f7fafc;
+            outline: none;
+            font-size: 13px;
+        }
+
+        .menu-accordion {
+            list-style: none;
+        }
+
+        .menu-cat-item {
+            border-bottom: 1px solid #edf2f7;
+            padding: 10px 0;
+        }
+
+        .menu-cat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 15px;
+            font-weight: 600;
+            color: #2d3748;
+            cursor: pointer;
+        }
+
+        .menu-cat-header:hover {
+            color: #d69e2e;
+        }
+
+        .menu-sub-list {
+            display: none;
+            list-style: none;
+            padding-left: 10px;
+            margin-top: 8px;
+        }
+
+        .menu-sub-item {
+            margin-bottom: 10px;
+        }
+
+        .menu-sub-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #4a5568;
+            margin-bottom: 5px;
+        }
+
+        .menu-child-list {
+            list-style: none;
+            padding-left: 8px;
+        }
+
+        .menu-child-item {
+            font-size: 12px;
+            color: #718096;
+            padding: 3px 0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .menu-child-item::before {
+            content: "■";
+            color: #d69e2e;
+            font-size: 8px;
+        }
+
+        .menu-child-item a {
+            color: #718096;
+            text-decoration: none;
+        }
+
+        .menu-child-item a:hover {
+            color: #3182ce;
+        }
+
+        /* Notification Modal Styling (Image 2 Design) */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .notification-modal {
+            background: #ffffff;
+            width: 90%;
+            max-width: 480px;
+            border-radius: 4px;
+            padding: 25px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            position: relative;
+            text-align: left;
+            color: #333;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .close-modal-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 16px;
+            cursor: pointer;
+            color: #555;
+            background: none;
+            border: none;
+            font-weight: bold;
+        }
+
+        .modal-sec-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #4a5568;
+            margin-bottom: 8px;
+        }
+
+        .modal-update-text {
+            font-size: 12px;
+            color: #718096;
+            margin-bottom: 20px;
+        }
+
+        .modal-update-text a {
+            color: #3182ce;
+            text-decoration: underline;
+            font-weight: bold;
+        }
+
+        .modal-notice-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .modal-notice-item {
+            font-size: 13px;
+            color: #4a5568;
+            padding: 10px 0;
+            border-bottom: 1px solid #edf2f7;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .modal-notice-item:last-child {
+            border-bottom: none;
+        }
+
+        .modal-notice-item::before {
+            content: "■";
+            color: #d69e2e;
+            font-size: 10px;
+            margin-top: 2px;
+        }
+
+        /* Mask Image Text Style like NTB & Scroll Animation */
+        .home-hero-text {
+            font-family: 'Poppins', sans-serif;
+            font-size: 120px;
+            font-weight: 800;
+            letter-spacing: -2px;
+            margin-bottom: 10px;
+            text-transform: lowercase;
+            
+            /* Dynamic Image Background Mask inside Text */
+            background-image: url('1.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            
+            animation: animateMask 20s infinite alternate linear;
+            transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+            transform-origin: center center;
+            will-change: transform;
+        }
+
+        @keyframes animateMask {
+            0% { background-image: url('1.jpg'); }
+            10% { background-image: url('2.jpg'); }
+            20% { background-image: url('3.jpg'); }
+            30% { background-image: url('4.jpg'); }
+            40% { background-image: url('5.jpg'); }
+            50% { background-image: url('6.jpg'); }
+            60% { background-image: url('7.jpg'); }
+            70% { background-image: url('8.jpg'); }
+            80% { background-image: url('9.jpg'); }
+            100% { background-image: url('10.jpg'); }
+        }
+
+        .home-subtitle {
+            font-family: 'Dancing Script', cursive;
+            font-style: italic;
+            font-size: 32px;
+            color: #2b547e;
+            margin-top: 5px;
+        }
+
+        .home-portal-title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 20px;
+            font-weight: 700;
+            color: #1a365d;
+            margin-top: 4px;
+            letter-spacing: 0.5px;
+        }
+
+        /* Dynamic Image Gallery Sections (Design matching pictures) */
+        .gallery-section {
+            padding: 40px 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: left;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-family: 'Dancing Script', cursive;
+            font-size: 36px;
+            color: #2b547e;
+        }
+
+        .view-all-btn {
+            font-size: 13px;
+            color: #718096;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .view-all-btn:hover {
+            color: #3182ce;
+        }
+
+        .category-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .cat-tab {
+            padding: 6px 14px;
+            background: #edf2f7;
+            border-radius: 20px;
+            font-size: 12px;
+            color: #4a5568;
+            cursor: pointer;
+            border: none;
+            font-weight: 600;
+        }
+
+        .cat-tab.active {
+            background: #ecc94b;
+            color: #fff;
+        }
+
+        /* Updated Grid Layout for Horizontal Scrolling */
+        .cards-grid {
+            display: flex;
+            gap: 20px;
+            overflow-x: auto;
+            padding-bottom: 15px;
+            scroll-behavior: smooth;
+        }
+
+        .cards-grid::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .cards-grid::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 10px;
+        }
+
+        .card-item {
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease;
+            min-width: 220px;
+            flex: 0 0 auto;
+        }
+
+        .card-item:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+        }
+
+        .card-caption {
+            padding: 12px 15px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        /* Image 3 Style Lifetime Experiences */
+        .instagram-grid {
+            display: flex;
+            gap: 20px;
+            overflow-x: auto;
+            padding-bottom: 15px;
+            scroll-behavior: smooth;
+        }
+
+        .instagram-grid::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .instagram-grid::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 10px;
+        }
+
+        /* Modified #LifetimeExperiences Styles */
+        .insta-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            background: #fff;
+            text-align: left;
+            min-width: 320px;
+            flex: 0 0 auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .insta-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            border-bottom: 1px solid #f1f1f1;
+        }
+
+        .insta-user {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .insta-user img {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1px solid #e2e8f0;
+        }
+
+        .insta-user-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .insta-user-info span.name {
+            font-size: 13px;
+            font-weight: bold;
+            color: #262626;
+        }
+
+        .insta-user-info span.followers {
+            font-size: 11px;
+            color: #8e8e8e;
+        }
+
+        .insta-btn {
+            background: #4A56E2;
+            color: #fff;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        .insta-img {
+            width: 100%;
+            height: 220px;
+            object-fit: cover;
+        }
+
+        .insta-footer {
+            padding: 12px 15px;
+        }
+
+        .insta-view-more {
+            display: block;
+            color: #4A56E2;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            margin-bottom: 10px;
+        }
+
+        .insta-actions {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .insta-actions svg {
+            width: 24px;
+            height: 24px;
+            fill: transparent;
+            stroke: #262626;
+            stroke-width: 2;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .insta-actions svg.loved {
+            fill: #ed4956;
+            stroke: #ed4956;
+        }
+
+        .insta-likes {
+            font-size: 13px;
+            font-weight: bold;
+            color: #262626;
+            margin-bottom: 10px;
+        }
+
+        .insta-comment-box {
+            border-top: 1px solid #e2e8f0;
+            padding: 12px 15px;
+            font-size: 13px;
+            color: #8e8e8e;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .other-websites-section {
+            background: #f7fafc;
+            padding: 40px 20px;
+            margin-top: 40px;
+        }
+
+        .website-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 20px;
+            max-width: 1200px;
+            margin: 20px auto 0;
+        }
+
+        .web-card {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+            text-align: center;
+        }
+
+        .web-card h4 {
+            color: #2b547e;
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+
+        .web-card p {
+            color: #718096;
+            font-size: 12px;
+        }
+
+        /* Fullscreen View More Gallery Overlay (Image 2 View) */
+        .view-more-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #ffffff;
+            z-index: 3000;
+            overflow-y: auto;
+            padding: 20px 15px;
+        }
+
+        .view-more-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .view-more-header h2 {
+            font-family: 'Dancing Script', cursive;
+            font-size: 32px;
+            color: #2b547e;
+        }
+
+        .close-view-more {
+            font-size: 28px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            color: #333;
+            font-weight: bold;
+        }
+
+        .grid-3-col {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .grid-3-col .card-item {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            min-width: unset;
+        }
+
+        .grid-3-col .card-img {
+            height: 160px;
+        }
+
+        .grid-3-col .card-caption {
+            padding: 10px;
+            font-size: 13px;
+        }
+
+        /* Footer Style */
+        .app-footer {
+            background: #ffffff;
+            border-top: 1px solid #e2e8f0;
+            padding: 40px 20px 20px;
+            text-align: left;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .footer-col h5 {
+            font-size: 12px;
+            color: #d69e2e;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            letter-spacing: 1px;
+        }
+
+        .footer-col ul {
+            list-style: none;
+        }
+
+        .footer-col ul li {
+            margin-bottom: 8px;
+            font-size: 13px;
+            color: #4a5568;
+        }
+
+        .footer-col ul li a {
+            color: #4a5568;
+            text-decoration: none;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid #edf2f7;
+            padding-top: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: #a0aec0;
+        }
+
+        /* Admin Dashboard Styling */
+        #admin-dashboard {
+            display: none;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            min-height: 100vh;
+            color: #333;
+            overflow-x: auto;
+        }
+
+        /* Admin Navigation Bar / Tabs */
+        .admin-nav {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .admin-nav button {
+            padding: 8px 16px;
+            cursor: pointer;
+            border: 1px solid #1f293d;
+            background: #fff;
+            color: #1f293d;
+            font-weight: bold;
+            border-radius: 5px;
+        }
+
+        .admin-nav button.active {
+            background: #1f293d;
+            color: #fff;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .data-table th, .data-table td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+
+        .action-btn {
+            padding: 5px 10px;
+            cursor: pointer;
+            border: none;
+            border-radius: 3px;
+        }
+
+        .delete-btn { background: #e74c3c; color: white; }
+        .edit-btn { background: #3498db; color: white; }
+
+        .notification-section, .menu-management-section {
+            margin-top: 20px;
+        }
+
+        .notification-form, .admin-form-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .notification-form input, .admin-form-group input, .admin-form-group select {
+            flex: 1;
+            min-width: 180px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .notification-list {
+            list-style: none;
+        }
+
+        .notification-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fff;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 8px;
+        }
+
+        /* Responsive Styles (Mobile & Desktop) */
+        @media (max-width: 768px) {
+            .navbar, .home-header {
+                padding: 10px 15px;
+            }
+            .nav-links { 
+                display: none; 
+            }
+            .home-hero-text { 
+                font-size: 55px; 
+            }
+            .data-table {
+                font-size: 14px;
+            }
+            .grid-3-col {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        @media (max-width: 480px) {
+            .grid-3-col {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Popups & Animations -->
+    <div id="welcome-popup">
+        <h2 id="welcome-popup-text">Welcome to Mymensingh</h2>
+    </div>
+    <div id="flower-container" class="flower-container"></div>
+
+    <!-- 1. LOGIN / USER FORM PAGE -->
+    <div id="login-page">
+        <nav class="navbar">
+            <div class="logo">
+                <img src="logo2.png" alt="Logo" id="app-logo">
+            </div>
+            <ul class="nav-links">
+                <li><a href="#">Home</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Services</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+            <div class="nav-btn">
+                <span id="nav-btn-toggle" class="login-btn-text" onclick="toggleFlip()">Login</span>
+            </div>
+        </nav>
+
+        <div class="login-container">
+            <div class="flip-card-inner" id="card-inner">
+                
+                <!-- User Login Form (Front Side - Pink) -->
+                <div class="glass-box user-box">
+                    <h2>Login</h2>
+                    <form id="user-form">
+                        <div class="input-group">
+                            <input type="text" id="user-name" placeholder="আপনার নাম" minlength="3" maxlength="35" required>
+                        </div>
+                        <div class="input-group">
+                            <select id="country" onchange="handleCountryChange()" required>
+                                <option value="">দেশ নির্বাচন করুন</option>
+                            </select>
+                        </div>
+                        <div class="input-group" id="division-group" style="display: none;">
+                            <select id="division" onchange="loadDistricts()">
+                                <option value="">বিভাগ নির্বাচন করুন</option>
+                            </select>
+                        </div>
+                        <div class="input-group" id="district-group" style="display: none;">
+                            <select id="district">
+                                <option value="">জেলা নির্বাচন করুন</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="submit-btn">Login</button>
+                    </form>
+                </div>
+
+                <!-- Admin Login Form (Back Side - Teal/Green Theme) -->
+                <div class="glass-box admin-box">
+                    <h2>Admin Login</h2>
+                    <form id="admin-form" onsubmit="handleAdminLogin(event)">
+                        <div class="input-group">
+                            <input type="email" id="admin-email" placeholder="Gmail" required>
+                        </div>
+                        <div class="input-group">
+                            <input type="password" id="admin-pass" placeholder="Password" required>
+                        </div>
+                        <button type="submit" class="submit-btn">Admin Login</button>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. USER HOME PAGE -->
+    <div id="home-page" onscroll="handleScroll(this)">
+        <div class="home-header">
+            <div class="header-left">
+                <img src="logo2.png" height="40" alt="Logo">
+            </div>
+            <div class="header-right">
+                <div class="header-icons">
+                    <span onclick="openNotificationModal()" title="Notifications">🔔</span>
+                    <span onclick="logout()" title="Logout">🚷</span>
+                    <span onclick="openSideMenu()" title="Menu">☰</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="home-content">
+            <h1 class="home-hero-text" id="hero-text">mymensingh</h1>
+            <p class="home-subtitle">Official Website of</p>
+            <p class="home-portal-title">Mymensingh Tourism Board</p>
+        </div>
+
+        <!-- 1. Latest Stories Section (Image 1) -->
+        <div class="gallery-section">
+            <div class="section-header">
+                <h2 class="section-title">Latest Stories</h2>
+                <a href="javascript:void(0)" class="view-all-btn" onclick="openViewMoreOverlay('Latest Stories')">— View More</a>
+            </div>
+            <div class="cards-grid" id="latest-stories-grid"></div>
+        </div>
+
+        <!-- 2. Season Highlights Section (Image 1) -->
+        <div class="gallery-section">
+            <div class="section-header">
+                <h2 class="section-title">Season Highlights</h2>
+                <a href="javascript:void(0)" class="view-all-btn" onclick="openViewMoreOverlay('Season Highlights')">— View More</a>
+            </div>
+            <div class="cards-grid" id="season-highlights-grid"></div>
+        </div>
+
+        <!-- 3. Places to go Section (Image 2) -->
+        <div class="gallery-section">
+            <div class="section-header">
+                <h2 class="section-title">Places to go</h2>
+                <a href="javascript:void(0)" class="view-all-btn" onclick="openViewMoreOverlay('Places to go')">— View More</a>
+            </div>
+            <div class="category-tabs" id="places-category-tabs"></div>
+            <div class="cards-grid" id="places-grid"></div>
+        </div>
+
+        <!-- 4. Events & Festivals Section (Image 2) -->
+        <div class="gallery-section">
+            <div class="section-header">
+                <h2 class="section-title">Events & Festivals</h2>
+                <a href="javascript:void(0)" class="view-all-btn" onclick="openViewMoreOverlay('Events & Festivals')">— View More</a>
+            </div>
+            <div class="cards-grid" id="events-grid"></div>
+        </div>
+
+        <!-- 5. Get Inspired Section (Image 2) -->
+        <div class="gallery-section">
+            <div class="section-header">
+                <h2 class="section-title">Get Inspired</h2>
+                <a href="javascript:void(0)" class="view-all-btn" onclick="openViewMoreOverlay('Get Inspired')">— View More</a>
+            </div>
+            <div class="cards-grid" id="inspired-grid"></div>
+        </div>
+
+        <!-- 6. #LifetimeExperiences Section (Image 3) -->
+        <div class="gallery-section">
+            <div class="section-header">
+                <h2 class="section-title">#LifetimeExperiences</h2>
+            </div>
+            <div class="instagram-grid" id="lifetime-grid"></div>
+        </div>
+
+        <!-- 7. Audio Player Section -->
+        <div style="text-align: center; margin: 30px auto; max-width: 1200px; padding: 0 20px;">
+            <audio controls style="width: 100%; max-width: 400px; outline: none;">
+                <source src="m.mp3" type="audio/mpeg">
+                আপনার ব্রাউজার অডিও সাপোর্ট করে না।
+            </audio>
+        </div>
+
+        <!-- 8. Footer Section (Image 3) -->
+        <footer class="app-footer">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h3 style="font-size:24px; color:#d69e2e; font-weight:bold; margin-bottom:10px;">mymensingh</h3>
+                    <p style="font-size:12px; color:#718096; line-height:1.6;">
+                        Mymensingh Tourism Board is the official organization responsible for tourism promotion in Mymensingh.
+                    </p>
+                </div>
+                <div class="footer-col">
+                    <h5>FIND US ON</h5>
+                    <ul id="footer-social-links">
+                        <!-- Dynamic Social Links Here -->
+                    </ul>
+                    <!-- APK Download Added Here -->
+                    <a href="mymtb.apk" download="mymtb.apk" style="display: inline-block; margin-top: 15px; padding: 8px 15px; background: #2b547e; color: white; text-decoration: none; border-radius: 5px; font-size: 13px; font-weight: bold;">📥 Apk Download</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <span>© 2026. Mymensingh Tourism Board. All rights reserved.</span>
+            </div>
+        </footer>
+
+        <!-- Slide-in Side Menu Drawer -->
+        <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSideMenu()"></div>
+        <div class="side-menu" id="side-menu">
+            <div class="side-menu-header">
+                <button class="close-menu-btn" onclick="closeSideMenu()">✕</button>
+            </div>
+            <div class="menu-search-box">
+                <input type="text" placeholder="Search">
+            </div>
+            <ul class="menu-accordion" id="dynamic-side-menu">
+                <!-- Dynamic Menu Structure Loaded From Admin Data -->
+            </ul>
+        </div>
+
+        <!-- Notification Pop-up Modal -->
+        <div class="modal-overlay" id="notification-modal">
+            <div class="notification-modal">
+                <button class="close-modal-btn" onclick="closeNotificationModal()">✕</button>
+                <div class="modal-sec-title">Official Updates</div>
+                <div class="modal-update-text">
+                    For information about tourist police go the link <a href="https://mymreg.touristpolice.gov.bd/" target="_blank">HERE</a>
+                </div>
+                <div class="modal-sec-title">Official Notices</div>
+                <ul class="modal-notice-list" id="modal-notice-list">
+                    <!-- Dynamic Notices Array from Admin -->
+                </ul>
+            </div>
+        </div>
+
+        <!-- View More Fullscreen Gallery (Image 2 Design) -->
+        <div class="view-more-overlay" id="view-more-overlay">
+            <div class="view-more-header">
+                <h2 id="view-more-title">Gallery</h2>
+                <button class="close-view-more" onclick="closeViewMoreOverlay()">✕</button>
+            </div>
+            <div class="grid-3-col" id="view-more-grid"></div>
+        </div>
+    </div>
+
+    <!-- 3. ADMIN DASHBOARD -->
+    <div id="admin-dashboard">
+        <h2>Admin Dashboard</h2>
+        <p>ব্যবহারকারীর তথ্য, ছবি ও সাইডবার মেনু পরিচালনা করার প্যানেল</p>
+        <button onclick="logout()" style="margin-top: 10px; padding: 5px 10px;">Logout</button>
+        
+        <!-- Admin Navigation Bar / Tabs -->
+        <div class="admin-nav">
+            <button id="tab-visitors-btn" class="active" onclick="showAdminTab('visitors')">Visitors list</button>
+            <button id="tab-notifications-btn" onclick="showAdminTab('notifications')">নোটিফিকেশন</button>
+            <button id="tab-menu-btn" onclick="showAdminTab('menu')">মেনু পরিচালনা</button>
+            <button id="tab-gallery-btn" onclick="showAdminTab('gallery')">ছবি ও গ্যালারি পরিচালনা</button>
+            <button id="tab-websites-btn" onclick="showAdminTab('websites')">ওয়েবসাইট পরিচালনা</button>
+            <button id="tab-social-btn" onclick="showAdminTab('social')">Social Media</button>
+        </div>
+
+        <!-- Visitors List Tab -->
+        <div id="visitors-tab">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>নাম</th>
+                        <th>দেশ</th>
+                        <th>বিভাগ</th>
+                        <th>জেলা</th>
+                        <th>অ্যাকশন (এডমিন)</th>
+                    </tr>
+                </thead>
+                <tbody id="admin-table-body">
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Notification Tab -->
+        <div id="notifications-tab" class="notification-section" style="display: none;">
+            <h3>নোটিফিকেশন পরিচালনা</h3>
+            <div class="notification-form">
+                <input type="text" id="notification-input" placeholder="নতুন নোটিফিকেশন তথ্য লিখুন...">
+                <button class="action-btn edit-btn" onclick="addNotification()">যোগ করুন</button>
+            </div>
+            <ul id="notification-list-container" class="notification-list">
+            </ul>
+        </div>
+
+        <!-- Menu Management Tab -->
+        <div id="menu-tab" class="menu-management-section" style="display: none;">
+            <h3>সাইডবার মেনু অপশন ও তথ্য যুক্ত করুন</h3>
+            <div class="admin-form-group">
+                <input type="text" id="menu-cat-input" placeholder="ক্যাটাগরি নাম (ex: Places to go)">
+                <input type="text" id="menu-sub-input" placeholder="সাব-ক্যাটাগরি নাম (ex: Highlights)">
+                <input type="text" id="menu-item-input" placeholder="আইটেম নাম (ex: Kathmandu)">
+                <input type="text" id="menu-link-input" placeholder="লিংক/URL (ex: https://...)">
+                <input type="text" id="menu-img-input" placeholder="ছবি ব্যাকগ্রাউন্ড লিংক (Optional)">
+                <button class="action-btn edit-btn" onclick="addMenuItem()">মেনুতে যোগ করুন</button>
+            </div>
+            
+            <h4>বর্তমান মেনু আইটেমসমূহ:</h4>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ক্যাটাগরি</th>
+                        <th>সাব-ক্যাটাগরি</th>
+                        <th>আইটেম</th>
+                        <th>লিংক</th>
+                        <th>ছবি লিংক</th>
+                        <th>অ্যাকশন</th>
+                    </tr>
+                </thead>
+                <tbody id="admin-menu-table-body">
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Gallery Management Tab (Photo Link & Caption Management) -->
+        <div id="gallery-tab" class="menu-management-section" style="display: none;">
+            <h3>হোমপেজের ছবি ও ক্যাপশন যুক্ত/সংশোধন করুন</h3>
+            <div class="admin-form-group">
+                <input type="text" id="gal-title-input" placeholder="ছবি এর ক্যাপশন/শিরোনাম">
+                <input type="text" id="gal-img-input" placeholder="ছবি URL/লিংক">
+                <select id="gal-cat-input">
+                    <option value="Latest Stories">Latest Stories</option>
+                    <option value="Season Highlights">Season Highlights</option>
+                    <option value="Places to go">Places to go</option>
+                    <option value="Events & Festivals">Events & Festivals</option>
+                    <option value="Get Inspired">Get Inspired</option>
+                    <option value="#LifetimeExperiences">#LifetimeExperiences</option>
+                </select>
+                <input type="text" id="gal-subcat-input" placeholder="সাব-ক্যাটাগরি/Likes (ex: 766 likes)">
+                <input type="text" id="gal-fb-link-input" placeholder="Facebook Link (#LifetimeExperiences এর জন্য)">
+                <button class="action-btn edit-btn" onclick="addGalleryItem()">ছবি যুক্ত করুন</button>
+            </div>
+
+            <h4>বর্তমান গ্যালারি ছবিসমূহ:</h4>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>শিরোনাম</th>
+                        <th>ছবি</th>
+                        <th>ক্যাটাগরি</th>
+                        <th>সাব-ক্যাটাগরি</th>
+                        <th>অ্যাকশন</th>
+                    </tr>
+                </thead>
+                <tbody id="admin-gallery-table-body">
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Other Websites Management Tab -->
+        <div id="websites-tab" class="menu-management-section" style="display: none;">
+            <h3>Other Official Websites যুক্ত/সংশোধন করুন</h3>
+            <div class="admin-form-group">
+                <input type="text" id="web-title-input" placeholder="সাইট শিরোনাম (ex: Tenders)">
+                <input type="text" id="web-desc-input" placeholder="বিবরণ (ex: For Tender Application)">
+                <button class="action-btn edit-btn" onclick="addWebsitesItem()">যোগ করুন</button>
+            </div>
+
+            <h4>বর্তমান ওয়েবসাইটসমূহ:</h4>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>শিরোনাম</th>
+                        <th>বিবরণ</th>
+                        <th>অ্যাকশন</th>
+                    </tr>
+                </thead>
+                <tbody id="admin-websites-table-body">
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Social Media Management Tab -->
+        <div id="social-tab" class="menu-management-section" style="display: none;">
+            <h3>Social Media লিংক যুক্ত/সংশোধন করুন</h3>
+            <div class="admin-form-group">
+                <input type="text" id="social-name-input" placeholder="প্ল্যাটফর্মের নাম (ex: Facebook)">
+                <input type="text" id="social-link-input" placeholder="প্রোফাইল লিংক/URL">
+                <button class="action-btn edit-btn" onclick="addSocialItem()">যোগ করুন</button>
+            </div>
+
+            <h4>বর্তমান সোশ্যাল মিডিয়া লিংকসমূহ:</h4>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>নাম</th>
+                        <th>লিংক</th>
+                        <th>অ্যাকশন</th>
+                    </tr>
+                </thead>
+                <tbody id="admin-social-table-body">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // --- Firebase Configuration & Initialization ---
+        // সতর্কতা: নিচের কনফিগারেশনে আপনার নিজের ফায়ারবেস প্রজেক্টের তথ্য দিন
+        const firebaseConfig = {
+            apiKey: "AIzaSyBRbEAai8KVmet2BBy4A7Dz4hFgR6qFJm8",
+  authDomain: "mymtb-67898.firebaseapp.com",
+  databaseURL: "https://mymtb-67898-default-rtdb.firebaseio.com",
+  projectId: "mymtb-67898",
+  storageBucket: "mymtb-67898.firebasestorage.app",
+  messagingSenderId: "777712140832",
+  appId: "1:777712140832:web:bcc515998c7153ddeef245",
+  measurementId: "G-NRNLNF1S9D"
+};
+        
+        // Initialize Firebase
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const database = firebase.database();
+
+        function syncDataToFirebase() {
+            database.ref('mymensingh_app_data').set({
+                app_users: userDataStore,
+                app_notifications: notificationsStore,
+                app_menu_items: menuStore,
+                app_gallery_items: galleryStore,
+                app_website_items: websiteStore,
+                app_social_links: socialStore
+            });
+        }
+
+        // Listen for Firebase Real-time Changes
+        database.ref('mymensingh_app_data').on('value', (snapshot) => {
+            const data = snapshot.val();
+            if(data) {
+                if(data.app_users) { userDataStore = data.app_users; localStorage.setItem('app_users', JSON.stringify(userDataStore)); }
+                if(data.app_notifications) { notificationsStore = data.app_notifications; localStorage.setItem('app_notifications', JSON.stringify(notificationsStore)); }
+                if(data.app_menu_items) { menuStore = data.app_menu_items; localStorage.setItem('app_menu_items', JSON.stringify(menuStore)); }
+                if(data.app_gallery_items) { galleryStore = data.app_gallery_items; localStorage.setItem('app_gallery_items', JSON.stringify(galleryStore)); }
+                if(data.app_website_items) { websiteStore = data.app_website_items; localStorage.setItem('app_website_items', JSON.stringify(websiteStore)); }
+                if(data.app_social_links) { socialStore = data.app_social_links; localStorage.setItem('app_social_links', JSON.stringify(socialStore)); }
+                
+                // Re-render Views based on current state
+                if (localStorage.getItem("loggedInUser")) {
+                    renderUserSideMenu();
+                    const savedFilter = localStorage.getItem('currentGalleryFilter') || "All";
+                    renderHomeGallery(savedFilter);
+                    renderFooterSocialLinks();
+                    
+                    // Refresh View More Overlay if open
+                    const openOverlay = localStorage.getItem('currentOverlay');
+                    if(openOverlay && document.getElementById("view-more-overlay").style.display === "block") {
+                        openViewMoreOverlay(openOverlay);
+                    }
+                } else if (localStorage.getItem("loggedInAdmin")) {
+                    renderAdminTable();
+                    renderNotifications();
+                    renderAdminMenuTable();
+                    renderAdminGalleryTable();
+                    renderAdminWebsitesTable();
+                    renderAdminSocialTable();
+                }
+            }
+        });
+        // -----------------------------------------------
+
+        // ১. Background Image Slider
+        const bgImages = ['1.jpg', '2.jpg', '3.jpg', '4.jpg', '5.jpg', '6.jpg', '7.jpg', '8.jpg', '9.jpg', '10.jpg'];
+        let currentBgIndex = 0;
+
+        function changeBackground() {
+            document.body.style.backgroundImage = `url('${bgImages[currentBgIndex]}')`;
+            currentBgIndex = (currentBgIndex + 1) % bgImages.length;
+        }
+        changeBackground();
+        setInterval(changeBackground, 5000);
+
+        // Scroll-triggered Zoom/Scale Animation & Persistence
+        function handleScroll(container) {
+            const heroText = document.getElementById("hero-text");
+            const scrollTop = container.scrollTop;
+            
+            // Save scroll state for persistence
+            localStorage.setItem('homeScrollPosition', scrollTop);
+
+            let scaleValue = 1 + (scrollTop / 300);
+            if (scaleValue > 2.5) scaleValue = 2.5; 
+            heroText.style.transform = `scale(${scaleValue})`;
+        }
+
+        // ২. দেশ, বিভাগ ও ৬৪ জেলার ডেটা
+        const countries = [
+            "বাংলাদেশ", "ভারত", "পাকিস্তান", "চীন", "জাপান", "সৌদি আরব", "নেপাল", "ভুটান", 
+            "যুক্তরাজ্য", "ফ্রান্স", "জার্মানি", "ইতালি", "রাশিয়া", "স্পেন", "সুইজারল্যান্ড", 
+            "মিশর", "দক্ষিণ আফ্রিকা", "নাইজেরিয়া", "কেনিয়া", "মরক্কো", "ঘানা", "যুক্তরাষ্ট্র", 
+            "কানাডা", "মেক্সিকো", "ব্রাজিল", "আর্জেন্টিনা", "চিলি", "কলম্বিয়া", "অস্ট্রেলিয়া", 
+            "নিউজিল্যান্ড", "ফিজি", "পাপুয়া নিউগিনী"
+        ];
+
+        const bdData = {
+            "ঢাকা": ["ঢাকা", "ফরিদপুর", "গাজীপুর", "গোপালগঞ্জ", "কিশোরগঞ্জ", "মাদারীপুর", "মানিকগঞ্জ", "মুন্সীগঞ্জ", "নারায়ণগঞ্জ", "নরসিংদী", "রাজবাড়ী", "শরীয়তপুর", "টাঙ্গাইল"],
+            "চট্টগ্রাম": ["বান্দরবান", "ব্রাহ্মণবাড়িয়া", "চাঁদপুর", "চট্টগ্রাম", "কুমিল্লা", "কক্সবাজার", "ফেনী", "খাগড়াছড়ি", "লক্ষ্মীপুর", "নোয়াখালী", "রাঙ্গামাটি"],
+            "রাজশাহী": ["বগুড়া", "জয়পুরহাট", "নওগাঁ", "নাটোর", "চাঁপাইনবাবগঞ্জ", "পাবনা", "রাজশাহী", "সিরাজগঞ্জ"],
+            "খুলনা": ["বাগেরহাট", "চুয়াডাঙ্গা", "যশোর", "ঝিনাইদহ", "খুলনা", "কুষ্টিয়া", "মাগুরা", "মেহেরপুর", "নড়াইল", "সাতক্ষীরা"],
+            "বরিশাল": ["বরগুনা", "বরিশাল", "ভোলা", "ঝালকাঠি", "পটুয়াখালী", "পিরোজপুর"],
+            "সিলেট": ["হবিগঞ্জ", "মৌলভীবাজার", "সুনামগঞ্জ", "সিলেট"],
+            "রংপুর": ["দিনাজপুর", "গাইবান্ধা", "কুড়িগ্রাম", "লালমনিরহাট", "নীলফামারী", "পঞ্চগড়", "রংপুর", "ঠাকুরগাঁও"],
+            "ময়মনসিংহ": ["জামালপুর", "ময়মনসিংহ", "নেত্রকোণা", "শেরপুর"]
+        };
+
+        const countrySelect = document.getElementById("country");
+        countries.forEach(c => {
+            countrySelect.innerHTML += `<option value="${c}">${c}</option>`;
+        });
+
+        function handleCountryChange() {
+            const country = countrySelect.value;
+            const divGroup = document.getElementById("division-group");
+            const distGroup = document.getElementById("district-group");
+            const divSelect = document.getElementById("division");
+            const distSelect = document.getElementById("district");
+
+            if (country === "বাংলাদেশ") {
+                divGroup.style.display = "block";
+                distGroup.style.display = "block";
+                divSelect.required = true;
+                distSelect.required = true;
+
+                divSelect.innerHTML = '<option value="">বিভাগ নির্বাচন করুন</option>';
+                distSelect.innerHTML = '<option value="">জেলা নির্বাচন করুন</option>';
+                Object.keys(bdData).forEach(div => {
+                    divSelect.innerHTML += `<option value="${div}">${div}</option>`;
+                });
+            } else {
+                divGroup.style.display = "none";
+                distGroup.style.display = "none";
+                divSelect.required = false;
+                distSelect.required = false;
+                divSelect.value = "";
+                distSelect.value = "";
+            }
+        }
+        
+        function loadDistricts() {
+            const division = document.getElementById("division").value;
+            const distSelect = document.getElementById("district");
+            
+            distSelect.innerHTML = '<option value="">জেলা নির্বাচন করুন</option>';
+            
+            if (division && bdData[division]) {
+                bdData[division].forEach(dist => {
+                    distSelect.innerHTML += `<option value="${dist}">${dist}</option>`;
+                });
+            }
+        }
+
+        // ৩. Single Button Toggle Flip Animation with Persistence
+        let isFlipped = false;
+        function toggleFlip(forceState = null) {
+            const cardInner = document.getElementById("card-inner");
+            const btn = document.getElementById("nav-btn-toggle");
+
+            isFlipped = forceState !== null ? forceState : !isFlipped;
+            localStorage.setItem('loginFlipState', isFlipped);
+
+            if (isFlipped) {
+                cardInner.classList.add("flipped");
+                btn.innerText = "Admin";
+                btn.className = "admin-btn-text";
+            } else {
+                cardInner.classList.remove("flipped");
+                btn.innerText = "Login";
+                btn.className = "login-btn-text";
+            }
+        }
+
+        // ৪. Form Handling & Local Storage
+        let userDataStore = JSON.parse(localStorage.getItem('app_users')) || [];
+        let notificationsStore = JSON.parse(localStorage.getItem('app_notifications')) || [];
+        
+        // ডিফল্ট মেনু ডেটা
+        const defaultMenuItems = [
+            { id: 1, category: "Places to go", subCategory: "Highlights", item: "Kathmandu", link: "#", img: "" },
+            { id: 2, category: "Places to go", subCategory: "Highlights", item: "Pokhara", link: "#", img: "" },
+            { id: 3, category: "Places to go", subCategory: "Attractions", item: "UNESCO World Heritage Sites", link: "#", img: "" },
+            { id: 4, category: "Things to do", subCategory: "Adventure", item: "Trekking", link: "#", img: "" },
+            { id: 5, category: "Things to do", subCategory: "Nature", item: "Bird Watching", link: "#", img: "" },
+            { id: 6, category: "Festivals & Events", subCategory: "Festivals", item: "Dashain", link: "#", img: "" },
+            { id: 7, category: "Plan Your Trip", subCategory: "Travel Details", item: "Tourist Police", link: "https://mymreg.touristpolice.gov.bd/", img: "" },
+            { id: 8, category: "Travel Updates", subCategory: "General", item: "Latest Updates", link: "#", img: "" },
+            { id: 9, category: "About Us", subCategory: "General", item: "About Mymensingh Board", link: "#", img: "" }
+        ];
+
+        // ছবি ১, ২ ও ৩ অনুযায়ী ডিফল্ট গ্যালারি তথ্য
+        const defaultGalleryItems = [
+            { id: 1, title: "The Glaciers in the Khumbu Region of Nepal Himalaya", img: "1.jpg", category: "Latest Stories", subCategory: "General" },
+            { id: 2, title: "Nepal Premier League", img: "2.jpg", category: "Latest Stories", subCategory: "General" },
+            { id: 201, title: "Maghe Sankranti", img: "3.jpg", category: "Latest Stories", subCategory: "General" },
+            { id: 202, title: "Butterflies Watching in Kathmandu", img: "4.jpg", category: "Latest Stories", subCategory: "General" },
+            { id: 203, title: "Tamu Lhosar", img: "5.jpg", category: "Latest Stories", subCategory: "General" },
+            { id: 204, title: "Janakpur and Vivah Panchami", img: "6.jpg", category: "Latest Stories", subCategory: "General" },
+            { id: 205, title: "Top Things to Do Around Dhankuta", img: "7.jpg", category: "Latest Stories", subCategory: "General" },
+            { id: 206, title: "The Rise of Cake-Mixing Ceremonies in Nepal", img: "8.jpg", category: "Latest Stories", subCategory: "General" },
+            { id: 207, title: "Mundhum Trail: Nepal's Hidden Cultural", img: "9.jpg", category: "Latest Stories", subCategory: "General" },
+            { id: 208, title: "Kopche of Dhankuta is Ready to Welcome Tourists", img: "10.jpg", category: "Latest Stories", subCategory: "General" },
+            { id: 209, title: "A Journey into Art, Faith, and Tradition", img: "1.jpg", category: "Latest Stories", subCategory: "General" },
+            { id: 210, title: "Honoring the Guardians of the Himalayas", img: "2.jpg", category: "Latest Stories", subCategory: "General" },
+            { id: 211, title: "Kukur Tihar: Nepal's Festival Honoring Dogs", img: "3.jpg", category: "Latest Stories", subCategory: "General" },
+            { id: 212, title: "Mha Puja: A Festival of Inner Light and Renewal", img: "4.jpg", category: "Latest Stories", subCategory: "General" },
+            { id: 213, title: "Exploring Tharu Culture in Chitwan", img: "5.jpg", category: "Latest Stories", subCategory: "General" },
+            { id: 3, title: "Palpa", img: "3.jpg", category: "Season Highlights", subCategory: "General" },
+            { id: 4, title: "Pokhara", img: "4.jpg", category: "Season Highlights", subCategory: "General" },
+            { id: 5, title: "Koshi", img: "5.jpg", category: "Places to go", subCategory: "Provinces" },
+            { id: 6, title: "Madhesh", img: "6.jpg", category: "Places to go", subCategory: "Provinces" },
+            { id: 7, title: "Bagmati", img: "7.jpg", category: "Places to go", subCategory: "Provinces" },
+            { id: 8, title: "Gandaki", img: "8.jpg", category: "Places to go", subCategory: "Provinces" },
+            { id: 9, title: "Lumbini", img: "9.jpg", category: "Places to go", subCategory: "Provinces" },
+            { id: 10, title: "Karnali", img: "10.jpg", category: "Places to go", subCategory: "Provinces" },
+            { id: 11, title: "Sudurpashchim", img: "1.jpg", category: "Places to go", subCategory: "Provinces" },
+            { id: 12, title: "Vivah Panchami", img: "2.jpg", category: "Events & Festivals", subCategory: "28TH NOVEMBER" },
+            { id: 13, title: "Yomari Punhi", img: "3.jpg", category: "Events & Festivals", subCategory: "8TH DECEMBER" },
+            { id: 14, title: "Udhauli Parva", img: "4.jpg", category: "Events & Festivals", subCategory: "8TH DECEMBER" },
+            { id: 15, title: "Magic Pokhara", img: "5.jpg", category: "Get Inspired", subCategory: "General" },
+            { id: 16, title: "Be part of a local festival", img: "6.jpg", category: "Get Inspired", subCategory: "General" },
+            { id: 17, title: "Meet the Living Goddess Kumari", img: "7.jpg", category: "Get Inspired", subCategory: "General" },
+            { id: 18, title: "nepaltourism", img: "8.jpg", category: "#LifetimeExperiences", subCategory: "766 likes", fbLink: "https://www.facebook.com/share/1K3RG2Adh9/" },
+            { id: 19, title: "nepaltourism", img: "9.jpg", category: "#LifetimeExperiences", subCategory: "229 likes", fbLink: "https://www.facebook.com/share/1K3RG2Adh9/" },
+            { id: 20, title: "nepaltourism", img: "10.jpg", category: "#LifetimeExperiences", subCategory: "277 likes", fbLink: "https://www.facebook.com/share/1K3RG2Adh9/" }
+        ];
+
+        const defaultWebsites = [
+            { id: 1, title: "Trade News", desc: "For Trade News" },
+            { id: 2, title: "nepalNOW", desc: "Share You Story" },
+            { id: 3, title: "Tenders", desc: "For Tender Application" },
+            { id: 4, title: "#photoNepal", desc: "Share Your Visuals" }
+        ];
+
+        const defaultSocialLinks = [
+            { id: 1, name: "Facebook", link: "#" },
+            { id: 2, name: "Instagram", link: "#" },
+            { id: 3, name: "Twitter", link: "#" },
+            { id: 4, name: "YouTube", link: "#" }
+        ];
+
+        let menuStore = JSON.parse(localStorage.getItem('app_menu_items')) || defaultMenuItems;
+        let galleryStore = JSON.parse(localStorage.getItem('app_gallery_items')) || defaultGalleryItems;
+        let websiteStore = JSON.parse(localStorage.getItem('app_website_items')) || defaultWebsites;
+        let socialStore = JSON.parse(localStorage.getItem('app_social_links')) || defaultSocialLinks;
+
+        // চেক করা আগে থেকে কেউ লগইন করে আছে কিনা
+        window.addEventListener("DOMContentLoaded", function() {
+            const loggedInUser = localStorage.getItem("loggedInUser");
+            const loggedInAdmin = localStorage.getItem("loggedInAdmin");
+            const loginFlipState = localStorage.getItem('loginFlipState') === 'true';
+
+            if (loggedInUser) {
+                document.getElementById("login-page").style.display = "none";
+                document.getElementById("home-page").style.display = "block";
+                renderUserSideMenu();
+                
+                const savedFilter = localStorage.getItem('currentGalleryFilter') || "All";
+                renderHomeGallery(savedFilter);
+                
+                renderFooterSocialLinks();
+
+                // Restore Overlay state
+                const openOverlay = localStorage.getItem('currentOverlay');
+                if(openOverlay) {
+                    openViewMoreOverlay(openOverlay);
+                }
+
+                // Restore Scroll Position
+                const savedScroll = localStorage.getItem('homeScrollPosition');
+                if(savedScroll) {
+                    setTimeout(() => { document.getElementById("home-page").scrollTop = savedScroll; }, 50);
+                }
+
+            } else if (loggedInAdmin) {
+                document.getElementById("login-page").style.display = "none";
+                document.getElementById("admin-dashboard").style.display = "block";
+                
+                const activeAdminTab = localStorage.getItem('activeAdminTab') || 'visitors';
+                showAdminTab(activeAdminTab);
+
+                renderAdminTable();
+                renderNotifications();
+                renderAdminMenuTable();
+                renderAdminGalleryTable();
+                renderAdminWebsitesTable();
+                renderAdminSocialTable();
+            } else {
+                if(loginFlipState) toggleFlip(true);
+            }
+        });
+
+        document.getElementById("user-form").addEventListener("submit", function(e) {
+            e.preventDefault();
+            const name = document.getElementById("user-name").value.trim();
+
+            if (name.length < 3 || name.length > 35) {
+                alert("লগইন নাম সর্বনিম্ন ৩ অক্ষর এবং সর্বোচ্চ ৩৫ অক্ষরের হতে হবে।");
+                return;
+            }
+
+            const country = document.getElementById("country").value;
+            const division = document.getElementById("division").value || "N/A";
+            const district = document.getElementById("district").value || "N/A";
+
+            const userData = { id: Date.now(), name, country, division, district };
+            userDataStore.push(userData);
+            localStorage.setItem('app_users', JSON.stringify(userDataStore));
+            syncDataToFirebase();
+            
+            localStorage.setItem("loggedInUser", JSON.stringify(userData));
+
+            document.getElementById("login-page").style.display = "none";
+            document.getElementById("home-page").style.display = "block";
+            renderUserSideMenu();
+            renderHomeGallery();
+            renderFooterSocialLinks();
+
+            triggerLoginAnimations(name);
+        });
+
+        function triggerLoginAnimations(userName) {
+            const popup = document.getElementById("welcome-popup");
+            const popupText = document.getElementById("welcome-popup-text");
+            popupText.innerText = `Welcome to Mymensingh, ${userName}`;
+            popup.style.display = "block";
+            setTimeout(() => { popup.classList.add("show"); }, 10);
+
+            setTimeout(() => {
+                popup.classList.remove("show");
+                setTimeout(() => { popup.style.display = "none"; }, 500);
+            }, 5000);
+
+            const container = document.getElementById("flower-container");
+            const flowers = ['🌸', '🌺', '🌼', '🌻', '🌹', '🌷'];
+            
+            const flowerInterval = setInterval(() => {
+                const flower = document.createElement("div");
+                flower.classList.add("flower");
+                flower.innerText = flowers[Math.floor(Math.random() * flowers.length)];
+                flower.style.left = Math.random() * 100 + "vw";
+                flower.style.animationDuration = (Math.random() * 2 + 2) + "s";
+                flower.style.fontSize = (Math.random() * 15 + 15) + "px";
+                container.appendChild(flower);
+
+                setTimeout(() => {
+                    flower.remove();
+                }, 4000);
+            }, 100);
+
+            setTimeout(() => {
+                clearInterval(flowerInterval);
+            }, 5000);
+        }
+
+        function handleAdminLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById("admin-email").value;
+            const pass = document.getElementById("admin-pass").value;
+
+            if(email === "admin@gmail.com" && pass === "admin123") {
+                localStorage.setItem("loggedInAdmin", "true");
+                document.getElementById("login-page").style.display = "none";
+                document.getElementById("admin-dashboard").style.display = "block";
+                
+                showAdminTab('visitors');
+                
+                renderAdminTable();
+                renderNotifications();
+                renderAdminMenuTable();
+                renderAdminGalleryTable();
+                renderAdminWebsitesTable();
+                renderAdminSocialTable();
+            } else {
+                alert("ভুল Email বা Password!");
+            }
+        }
+
+        // ৫. Admin Table Functionality
+        function renderAdminTable() {
+            const tbody = document.getElementById("admin-table-body");
+            tbody.innerHTML = "";
+            userDataStore.forEach((user, index) => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${user.name}</td>
+                        <td>${user.country}</td>
+                        <td>${user.division}</td>
+                        <td>${user.district}</td>
+                        <td>
+                            <button class="action-btn edit-btn" onclick="editUser(${index})">Edit</button>
+                            <button class="action-btn delete-btn" onclick="deleteUser(${index})">Delete</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function deleteUser(index) {
+            userDataStore.splice(index, 1);
+            localStorage.setItem('app_users', JSON.stringify(userDataStore));
+            syncDataToFirebase();
+            renderAdminTable();
+        }
+
+        function editUser(index) {
+            const newName = prompt("নতুন নাম লিখুন:", userDataStore[index].name);
+            if (newName) {
+                if (newName.trim().length < 3 || newName.trim().length > 35) {
+                    alert("নাম সর্বনিম্ন ৩ এবং সর্বোচ্চ ৩৫ অক্ষরের হতে হবে!");
+                    return;
+                }
+                userDataStore[index].name = newName.trim();
+                localStorage.setItem('app_users', JSON.stringify(userDataStore));
+                syncDataToFirebase();
+                renderAdminTable();
+            }
+        }
+
+        function showAdminTab(tabName) {
+            localStorage.setItem('activeAdminTab', tabName);
+
+            const visitorsTab = document.getElementById("visitors-tab");
+            const notificationsTab = document.getElementById("notifications-tab");
+            const menuTab = document.getElementById("menu-tab");
+            const galleryTab = document.getElementById("gallery-tab");
+            const websitesTab = document.getElementById("websites-tab");
+            const socialTab = document.getElementById("social-tab");
+
+            const visitorsBtn = document.getElementById("tab-visitors-btn");
+            const notificationsBtn = document.getElementById("tab-notifications-btn");
+            const menuBtn = document.getElementById("tab-menu-btn");
+            const galleryBtn = document.getElementById("tab-gallery-btn");
+            const websitesBtn = document.getElementById("tab-websites-btn");
+            const socialBtn = document.getElementById("tab-social-btn");
+
+            visitorsTab.style.display = tabName === 'visitors' ? "block" : "none";
+            notificationsTab.style.display = tabName === 'notifications' ? "block" : "none";
+            menuTab.style.display = tabName === 'menu' ? "block" : "none";
+            galleryTab.style.display = tabName === 'gallery' ? "block" : "none";
+            websitesTab.style.display = tabName === 'websites' ? "block" : "none";
+            socialTab.style.display = tabName === 'social' ? "block" : "none";
+
+            visitorsBtn.classList.toggle("active", tabName === 'visitors');
+            notificationsBtn.classList.toggle("active", tabName === 'notifications');
+            menuBtn.classList.toggle("active", tabName === 'menu');
+            galleryBtn.classList.toggle("active", tabName === 'gallery');
+            websitesBtn.classList.toggle("active", tabName === 'websites');
+            socialBtn.classList.toggle("active", tabName === 'social');
+        }
+
+        function addNotification() {
+            const input = document.getElementById("notification-input");
+            const text = input.value.trim();
+            if(text) {
+                notificationsStore.push(text);
+                localStorage.setItem('app_notifications', JSON.stringify(notificationsStore));
+                syncDataToFirebase();
+                input.value = "";
+                renderNotifications();
+            }
+        }
+
+        function deleteNotification(index) {
+            notificationsStore.splice(index, 1);
+            localStorage.setItem('app_notifications', JSON.stringify(notificationsStore));
+            syncDataToFirebase();
+            renderNotifications();
+        }
+
+        function renderNotifications() {
+            const listContainer = document.getElementById("notification-list-container");
+            listContainer.innerHTML = "";
+            notificationsStore.forEach((note, index) => {
+                listContainer.innerHTML += `
+                    <li class="notification-item">
+                        <span>${note}</span>
+                        <button class="action-btn delete-btn" onclick="deleteNotification(${index})">মুছুন</button>
+                    </li>
+                `;
+            });
+        }
+
+        function addMenuItem() {
+            const cat = document.getElementById("menu-cat-input").value.trim();
+            const sub = document.getElementById("menu-sub-input").value.trim() || "General";
+            const item = document.getElementById("menu-item-input").value.trim();
+            const link = document.getElementById("menu-link-input").value.trim() || "#";
+            const img = document.getElementById("menu-img-input").value.trim();
+
+            if (!cat || !item) {
+                alert("ক্যাটাগরি এবং আইটেম এর নাম আবশ্যক!");
+                return;
+            }
+
+            menuStore.push({ id: Date.now(), category: cat, subCategory: sub, item: item, link: link, img: img });
+            localStorage.setItem('app_menu_items', JSON.stringify(menuStore));
+            syncDataToFirebase();
+
+            document.getElementById("menu-cat-input").value = "";
+            document.getElementById("menu-sub-input").value = "";
+            document.getElementById("menu-item-input").value = "";
+            document.getElementById("menu-link-input").value = "";
+            document.getElementById("menu-img-input").value = "";
+
+            renderAdminMenuTable();
+        }
+
+        function deleteMenuItem(index) {
+            menuStore.splice(index, 1);
+            localStorage.setItem('app_menu_items', JSON.stringify(menuStore));
+            syncDataToFirebase();
+            renderAdminMenuTable();
+        }
+
+        function renderAdminMenuTable() {
+            const tbody = document.getElementById("admin-menu-table-body");
+            tbody.innerHTML = "";
+            menuStore.forEach((m, index) => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${m.category}</td>
+                        <td>${m.subCategory}</td>
+                        <td>${m.item}</td>
+                        <td><a href="${m.link}" target="_blank">Link</a></td>
+                        <td>${m.img ? 'Image Set' : 'None'}</td>
+                        <td>
+                            <button class="action-btn delete-btn" onclick="deleteMenuItem(${index})">মুছুন</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function addGalleryItem() {
+            const title = document.getElementById("gal-title-input").value.trim();
+            const img = document.getElementById("gal-img-input").value.trim();
+            const cat = document.getElementById("gal-cat-input").value;
+            const sub = document.getElementById("gal-subcat-input").value.trim() || "General";
+            const fbLink = document.getElementById("gal-fb-link-input").value.trim() || "#";
+
+            if (!title || !img) {
+                alert("ছবি ক্যাপশন এবং ছবি লিংক আবশ্যক!");
+                return;
+            }
+
+            galleryStore.push({ id: Date.now(), title: title, img: img, category: cat, subCategory: sub, fbLink: fbLink });
+            localStorage.setItem('app_gallery_items', JSON.stringify(galleryStore));
+            syncDataToFirebase();
+
+            document.getElementById("gal-title-input").value = "";
+            document.getElementById("gal-img-input").value = "";
+            document.getElementById("gal-subcat-input").value = "";
+            document.getElementById("gal-fb-link-input").value = "";
+
+            renderAdminGalleryTable();
+        }
+
+        function deleteGalleryItem(index) {
+            galleryStore.splice(index, 1);
+            localStorage.setItem('app_gallery_items', JSON.stringify(galleryStore));
+            syncDataToFirebase();
+            renderAdminGalleryTable();
+        }
+
+        function renderAdminGalleryTable() {
+            const tbody = document.getElementById("admin-gallery-table-body");
+            tbody.innerHTML = "";
+            galleryStore.forEach((g, index) => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${g.title}</td>
+                        <td><img src="${g.img}" width="50" height="35" style="object-fit:cover; border-radius:3px;"></td>
+                        <td>${g.category}</td>
+                        <td>${g.subCategory}</td>
+                        <td>
+                            <button class="action-btn delete-btn" onclick="deleteGalleryItem(${index})">মুছুন</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function addWebsitesItem() {
+            const title = document.getElementById("web-title-input").value.trim();
+            const desc = document.getElementById("web-desc-input").value.trim();
+
+            if (!title) {
+                alert("শিরোনাম আবশ্যক!");
+                return;
+            }
+
+            websiteStore.push({ id: Date.now(), title, desc });
+            localStorage.setItem('app_website_items', JSON.stringify(websiteStore));
+            syncDataToFirebase();
+
+            document.getElementById("web-title-input").value = "";
+            document.getElementById("web-desc-input").value = "";
+
+            renderAdminWebsitesTable();
+        }
+
+        function deleteWebsitesItem(index) {
+            websiteStore.splice(index, 1);
+            localStorage.setItem('app_website_items', JSON.stringify(websiteStore));
+            syncDataToFirebase();
+            renderAdminWebsitesTable();
+        }
+
+        function renderAdminWebsitesTable() {
+            const tbody = document.getElementById("admin-websites-table-body");
+            tbody.innerHTML = "";
+            websiteStore.forEach((w, index) => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${w.title}</td>
+                        <td>${w.desc}</td>
+                        <td>
+                            <button class="action-btn delete-btn" onclick="deleteWebsitesItem(${index})">মুছুন</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function addSocialItem() {
+            const name = document.getElementById("social-name-input").value.trim();
+            const link = document.getElementById("social-link-input").value.trim();
+
+            if (!name || !link) {
+                alert("প্ল্যাটফর্মের নাম এবং লিংক আবশ্যক!");
+                return;
+            }
+
+            socialStore.push({ id: Date.now(), name, link });
+            localStorage.setItem('app_social_links', JSON.stringify(socialStore));
+            syncDataToFirebase();
+
+            document.getElementById("social-name-input").value = "";
+            document.getElementById("social-link-input").value = "";
+
+            renderAdminSocialTable();
+            renderFooterSocialLinks();
+        }
+
+        function deleteSocialItem(index) {
+            socialStore.splice(index, 1);
+            localStorage.setItem('app_social_links', JSON.stringify(socialStore));
+            syncDataToFirebase();
+            renderAdminSocialTable();
+            renderFooterSocialLinks();
+        }
+
+        function renderAdminSocialTable() {
+            const tbody = document.getElementById("admin-social-table-body");
+            tbody.innerHTML = "";
+            socialStore.forEach((s, index) => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${s.name}</td>
+                        <td><a href="${s.link}" target="_blank">Link</a></td>
+                        <td>
+                            <button class="action-btn delete-btn" onclick="deleteSocialItem(${index})">মুছুন</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function renderFooterSocialLinks() {
+            const footerList = document.getElementById("footer-social-links");
+            if (footerList) {
+                footerList.innerHTML = "";
+                socialStore.forEach(s => {
+                    footerList.innerHTML += `<li><a href="${s.link}" target="_blank">${s.name}</a></li>`;
+                });
+            }
+        }
+
+        function renderHomeGallery(filterSubCat = "All") {
+            localStorage.setItem('currentGalleryFilter', filterSubCat); // Persistence added
+            
+            const storiesGrid = document.getElementById("latest-stories-grid");
+            const highlightsGrid = document.getElementById("season-highlights-grid");
+            const placesGrid = document.getElementById("places-grid");
+            const placesTabs = document.getElementById("places-category-tabs");
+            const eventsGrid = document.getElementById("events-grid");
+            const inspiredGrid = document.getElementById("inspired-grid");
+            const lifetimeGrid = document.getElementById("lifetime-grid");
+
+            if (!storiesGrid) return;
+
+            storiesGrid.innerHTML = "";
+            highlightsGrid.innerHTML = "";
+            placesGrid.innerHTML = "";
+            eventsGrid.innerHTML = "";
+            inspiredGrid.innerHTML = "";
+            lifetimeGrid.innerHTML = "";
+
+            galleryStore.filter(g => g.category === "Latest Stories").forEach(g => {
+                storiesGrid.innerHTML += `
+                    <div class="card-item">
+                        <img src="${g.img}" class="card-img" alt="${g.title}">
+                        <div class="card-caption">${g.title}</div>
+                    </div>
+                `;
+            });
+
+            galleryStore.filter(g => g.category === "Season Highlights").forEach(g => {
+                highlightsGrid.innerHTML += `
+                    <div class="card-item">
+                        <img src="${g.img}" class="card-img" alt="${g.title}">
+                        <div class="card-caption">${g.title}</div>
+                    </div>
+                `;
+            });
+
+            const placesItems = galleryStore.filter(g => g.category === "Places to go");
+            const dynamicSubCats = ["All", ...new Set(placesItems.map(g => g.subCategory))];
+            
+            placesTabs.innerHTML = "";
+            dynamicSubCats.forEach((sc) => {
+                placesTabs.innerHTML += `<button class="cat-tab ${sc === filterSubCat ? 'active' : ''}" onclick="renderHomeGallery('${sc}')">${sc}</button>`;
+            });
+
+            const filteredPlaces = (filterSubCat === 'All') 
+                ? placesItems 
+                : placesItems.filter(g => g.subCategory === filterSubCat);
+
+            if (filteredPlaces.length === 0) {
+                placesGrid.innerHTML = `<div style="padding: 10px; color: #718096; font-size: 14px;">কোন ছবি পাওয়া যায়নি।</div>`;
+            } else {
+                filteredPlaces.forEach(g => {
+                    placesGrid.innerHTML += `
+                        <div class="card-item">
+                            <img src="${g.img}" class="card-img" alt="${g.title}">
+                            <div class="card-caption">${g.title}</div>
+                        </div>
+                    `;
+                });
+            }
+
+            galleryStore.filter(g => g.category === "Events & Festivals").forEach(g => {
+                eventsGrid.innerHTML += `
+                    <div class="card-item">
+                        <img src="${g.img}" class="card-img" alt="${g.title}">
+                        <div class="card-caption">
+                            <span style="color:#ecc94b; font-size:11px; display:block;">${g.subCategory}</span>
+                            ${g.title}
+                        </div>
+                    </div>
+                `;
+            });
+
+            galleryStore.filter(g => g.category === "Get Inspired").forEach(g => {
+                inspiredGrid.innerHTML += `
+                    <div class="card-item">
+                        <img src="${g.img}" class="card-img" alt="${g.title}">
+                        <div class="card-caption">${g.title}</div>
+                    </div>
+                `;
+            });
+
+            galleryStore.filter(g => g.category === "#LifetimeExperiences").forEach(g => {
+                const fbLink = g.fbLink || "https://www.facebook.com/share/1K3RG2Adh9/";
+                lifetimeGrid.innerHTML += `
+                    <div class="insta-card">
+                        <div class="insta-header">
+                            <div class="insta-user">
+                                <img src="logo3.jpg" alt="Profile">
+                                <div class="insta-user-info">
+                                    <span class="name">mymensingh</span>
+                                    <span class="followers">66.4K followers</span>
+                                </div>
+                            </div>
+                            <a href="https://www.facebook.com/share/1K3RG2Adh9/" target="_blank" class="insta-btn">View profile</a>
+                        </div>
+                        <img src="${g.img}" class="insta-img">
+                        <div class="insta-footer">
+                            <a href="${fbLink}" target="_blank" class="insta-view-more">View more on Facebook</a>
+                            <div class="insta-actions">
+                                <svg viewBox="0 0 24 24" onclick="this.classList.toggle('loved')">
+                                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                                </svg>
+                            </div>
+                            <div class="insta-likes">${g.subCategory}</div>
+                        </div>
+                        <div class="insta-comment-box">
+                            <span>Add a comment...</span>
+                            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function openViewMoreOverlay(category) {
+            localStorage.setItem('currentOverlay', category); // Persistence added
+            const overlay = document.getElementById("view-more-overlay");
+            const titleEl = document.getElementById("view-more-title");
+            const grid = document.getElementById("view-more-grid");
+
+            titleEl.innerText = category;
+            grid.innerHTML = "";
+
+            const items = galleryStore.filter(g => g.category === category);
+            
+            if (items.length === 0) {
+                grid.innerHTML = "<p style='grid-column: span 3; text-align:center;'>কোন তথ্য পাওয়া যায়নি।</p>";
+            } else {
+                items.forEach(g => {
+                    grid.innerHTML += `
+                        <div class="card-item">
+                            <img src="${g.img}" class="card-img" alt="${g.title}">
+                            <div class="card-caption">${g.title}</div>
+                        </div>
+                    `;
+                });
+            }
+
+            overlay.style.display = "block";
+        }
+
+        function closeViewMoreOverlay() {
+            localStorage.removeItem('currentOverlay'); // Remove Persistence on close
+            document.getElementById("view-more-overlay").style.display = "none";
+        }
+
+        function filterGallery(category) {
+            openViewMoreOverlay(category);
+        }
+
+        function openSideMenu() {
+            renderUserSideMenu();
+            document.getElementById("side-menu").classList.add("active");
+            document.getElementById("sidebar-overlay").style.display = "block";
+        }
+
+        function closeSideMenu() {
+            document.getElementById("side-menu").classList.remove("active");
+            document.getElementById("sidebar-overlay").style.display = "none";
+        }
+
+        function toggleCategoryAccordion(catId) {
+            const el = document.getElementById(`sub-list-${catId}`);
+            if (el) {
+                el.style.display = (el.style.display === "block") ? "none" : "block";
+            }
+        }
+
+        function renderUserSideMenu() {
+            const menuContainer = document.getElementById("dynamic-side-menu");
+            menuContainer.innerHTML = "";
+
+            const grouped = {};
+            menuStore.forEach(m => {
+                if (!grouped[m.category]) grouped[m.category] = {};
+                if (!grouped[m.category][m.subCategory]) grouped[m.category][m.subCategory] = [];
+                grouped[m.category][m.subCategory].push(m);
+            });
+
+            let catIndex = 0;
+            for (let catName in grouped) {
+                catIndex++;
+                let subHtml = "";
+
+                for (let subName in grouped[catName]) {
+                    let itemsHtml = "";
+                    grouped[catName][subName].forEach(item => {
+                        itemsHtml += `
+                            <li class="menu-child-item">
+                                <a href="${item.link}" target="_blank" onclick="${item.img ? `changeHeroImg('${item.img}')` : ''}">${item.item}</a>
+                            </li>
+                        `;
+                    });
+
+                    subHtml += `
+                        <li class="menu-sub-item">
+                            <div class="menu-sub-title">${subName}</div>
+                            <ul class="menu-child-list">${itemsHtml}</ul>
+                        </li>
+                    `;
+                }
+
+                menuContainer.innerHTML += `
+                    <li class="menu-cat-item">
+                        <div class="menu-cat-header" onclick="toggleCategoryAccordion(${catIndex})">
+                            <span>${catName}</span>
+                            <span>⌵</span>
+                        </div>
+                        <ul class="menu-sub-list" id="sub-list-${catIndex}">
+                            ${subHtml}
+                        </ul>
+                    </li>
+                `;
+            }
+        }
+
+        function changeHeroImg(imgUrl) {
+            const hero = document.querySelector(".home-hero-text");
+            if (hero && imgUrl) {
+                hero.style.backgroundImage = `url('${imgUrl}')`;
+            }
+        }
+
+        function openNotificationModal() {
+            const noticeList = document.getElementById("modal-notice-list");
+            noticeList.innerHTML = "";
+            
+            if (notificationsStore.length === 0) {
+                noticeList.innerHTML = `<li class="modal-notice-item">কোনো নতুন নোটিশ নেই।</li>`;
+            } else {
+                notificationsStore.forEach(note => {
+                    noticeList.innerHTML += `<li class="modal-notice-item">${note}</li>`;
+                });
+            }
+            document.getElementById("notification-modal").style.display = "flex";
+        }
+
+        function closeNotificationModal() {
+            document.getElementById("notification-modal").style.display = "none";
+        }
+
+        function logout() {
+            localStorage.removeItem("loggedInUser");
+            localStorage.removeItem("loggedInAdmin");
+            localStorage.removeItem("activeAdminTab"); 
+            localStorage.removeItem("currentOverlay");
+            localStorage.removeItem("homeScrollPosition");
+            location.reload();
+        }
+    </script>
+</body>
+</html>
